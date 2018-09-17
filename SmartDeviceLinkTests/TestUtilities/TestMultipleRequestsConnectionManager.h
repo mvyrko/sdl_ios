@@ -13,6 +13,11 @@
 @interface TestMultipleRequestsConnectionManager : TestConnectionManager
 
 /**
+ * Run Request on next runloop cycle
+ */
+@property (nonatomic, assign) BOOL runAfterDelay;
+
+/**
  *  A response and error to pass into the last request's block
  */
 @property (copy, nonatomic) NSMutableDictionary *responses;

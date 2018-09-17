@@ -25,6 +25,16 @@
 }
 
 - (void)sendConnectionRequest:(__kindof SDLRPCRequest *)request withResponseHandler:(SDLResponseHandler)handler {
+    if (self.runAfterDelay) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self sendRequest:request withResponseHandler:handler];
+        });
+        return;
+    }
+    [self sendRequest:request withResponseHandler:handler];
+}
+
+- (void)sendRequest:(__kindof SDLRPCRequest *)request withResponseHandler:(SDLResponseHandler)handler {
     [super sendConnectionRequest:request withResponseHandler:handler];
 
     NSAssert([request.name isEqualToString:SDLNameAddCommand], @"The TestMultipleRequestsConnectionManager is only setup for SDLAddCommand");

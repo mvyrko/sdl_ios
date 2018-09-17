@@ -100,6 +100,34 @@ describe(@"sending asynchronous requests", ^{
             [NSThread sleepForTimeInterval:0.5];
         });
     });
+
+    context(@"Please no crash", ^{
+        beforeEach(^{
+            for (int i = 0; i < 3; i++) {
+                SDLAddCommand *addCommand = [[SDLAddCommand alloc] init];
+                addCommand.correlationID = @(i);
+                [sendRequests addObject:addCommand];
+
+                testConnectionManager.runAfterDelay = YES;
+
+                testConnectionManager.responses[addCommand.correlationID] = [SDLSpecUtilities addCommandRPCResponseWithCorrelationId:addCommand.correlationID];
+                testProgressResponses[addCommand.correlationID] = [[TestRequestProgressResponse alloc] initWithCorrelationId:addCommand.correlationID percentComplete:((float)(0)/3.0) error:nil];
+            }
+        });
+
+        it(@"no NSRangeException", ^{
+            testOperation = [[SDLAsynchronousRPCRequestOperation alloc] initWithConnectionManager:testConnectionManager requests:sendRequests.copy progressHandler:^(__kindof SDLRPCRequest * _Nonnull request, __kindof SDLRPCResponse * _Nullable response, NSError * _Nullable error, float percentComplete) {
+            } completionHandler:^(BOOL success) {
+                expect(YES);
+            }];
+
+            [testOperationQueue addOperation:testOperation];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [testOperation cancel];
+            });
+            [NSThread sleepForTimeInterval:0.5];
+        });
+    });
 });
 
 QuickSpecEnd
